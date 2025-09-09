@@ -11637,105 +11637,58 @@ Constructors</h4>
         </pre>
 </dl>
 
-<!--
-<section>
-      <h2>Attributes</h2>
-      <div class="note">
-        <p>These attributes update only once per second and under specific conditions. See the <a href="#mitigations">Privacy & Security mitigations</a> section and the [= update playout stats =] algorithm for details.</p>
-      </div>
-      <section>
-        <h2><dfn>fallbackFramesDuration</dfn> attribute</h2>
-        <p>Returns {{AudioPlayoutStats/[[fallback frames duration]]}}.</p>
-        <p>Measures the duration of [=fallback frame=]s played by the {{AudioContext}}, in milliseconds. This metric can be
-          used together with {{AudioPlayoutStats/totalFramesDuration}} to calculate the percentage of played out media
-          that was not provided by the {{AudioContext}}.
-        </p>
-      </section>
-      <section>
-        <h2><dfn>fallbackFramesEvents</dfn> attribute</h2>
-        <p>Returns {{AudioPlayoutStats/[[fallback frames events]]}}.</p>
-        <p>
-          This measures the number of [=fallback event=]s that have occurred in the {{AudioContext}}.
-        </p>
-      </section>
-      <section>
-        <h2><dfn>totalFramesDuration</dfn> attribute</h2>
-        <p>Returns {{AudioPlayoutStats/[[total frames duration]]}}.</p>
-        <p>Measures the duration of all audio frames played by the {{AudioContext}}, in milliseconds. Includes both fallback and non-fallback frames.
-        </p>
-      </section>
-      <section>
-        <h2><dfn>averageLatency</dfn> attribute</h2>
-        <p>Returns {{AudioPlayoutStats/[[average latency]]}}.</p>
-        <p>This is the average latency for the frames played since the
-          last call to {{AudioPlayoutStats/resetLatency()}}, or since the creation of the {{AudioContext}} if
-          {{AudioPlayoutStats/resetLatency()}} has
-          not been called.
-        </p>
-      </section>
-      <section>
-        <h2><dfn>minimumLatency</dfn> attribute</h2>
-        <p>Returns {{AudioPlayoutStats/[[minimum latency]]}}.</p>
-        <p>This measures the minimum latency for the frames played since the
-          last call to {{AudioPlayoutStats/resetLatency()}}, or since the creation of the {{AudioContext}} if
-          {{AudioPlayoutStats/resetLatency()}} has not been called. 
-        </p>
-      </section>
-      <section>
-        <h2><dfn>maximumLatency</dfn> attribute</h2>
-        <p>Returns {{AudioPlayoutStats/[[maximum latency]]}}.</p>
-        <p>This measures the maximum latency for the frames played since the
-          last call to {{AudioPlayoutStats/resetLatency()}}, or since the creation of the {{AudioContext}} if
-          {{AudioPlayoutStats/resetLatency()}} has not been called.
-        </p>
-      </section>
-    </section>
-    <section>
-      <h2>Methods</h2>
-      <section>
-        <h2><dfn>resetLatency</dfn> method</h2>
-        <p>This method resets the latency counters. Note that it does not remove
-          latency information that has accrued but not yet been exposed through the API.
-        </p>
-        <p>
-          When <code>resetLatency()</code> is called, run the [= reset latency stats =] steps.
-        </p>
-      </section>
-    </section>
--->
-
 <h4 id="AudioPlayoutStats-attributes">
 Attributes</h4>
 
 <dl dfn-type=attribute dfn-for="AudioPlayoutStats">
     : <dfn>underrunDuration</dfn>
     ::
-        Returns {{[[underrun duration]]}}.
+        Measures the duration of [=underrun frames=] played by the {{AudioContext}}, in milliseconds.
+        This metric can be used together with {{totalDuration}} to
+        calculate the percentage of played out media that was not provided by the {{AudioContext}}.
+
+        Returns the value of the {{[[underrun duration]]}} internal slot.
 
 <dl dfn-type=attribute dfn-for="AudioPlayoutStats">
     : <dfn>underrunEvents</dfn>
     ::
-        Returns {{[[underrun events]]}}.
+        Measures the number of [=underrun events=] that have occurred during playout by the {{AudioContext}}.
+
+        Returns the value of the {{[[underrun events]]}} internal slot.
 
 <dl dfn-type=attribute dfn-for="AudioPlayoutStats">
     : <dfn>totalDuration</dfn>
     ::
-        Returns {{[[total duration]]}}.
+        Measures the total duration of all audio played by the {{AudioContext}}, in milliseconds.
+
+        Returns the value of the {{[[total duration]]}} internal slot.
 
 <dl dfn-type=attribute dfn-for="AudioPlayoutStats">
     : <dfn>averageLatency</dfn>
     ::
-        Returns {{[[average latency]]}}.
+        The average playout latency, in milliseconds, for audio played since the
+        last call to {{resetLatency()}}, or since the creation of the {{AudioContext}} if
+        {{resetLatency()}} has not been called.
+
+        Returns the value of the {{[[average latency]]}} internal slot.
 
 <dl dfn-type=attribute dfn-for="AudioPlayoutStats">
     : <dfn>minimumLatency</dfn>
     ::
-        Returns {{[[minimum latency]]}}.
+        The minimum playout latency, in milliseconds, for audio played since the
+        last call to {{resetLatency()}}, or since the creation of the {{AudioContext}} if
+        {{resetLatency()}} has not been called.
+
+        Returns the value of the {{[[minimum latency]]}} internal slot.
 
 <dl dfn-type=attribute dfn-for="AudioPlayoutStats">
     : <dfn>maximumLatency</dfn>
     ::
-        Returns {{[[maximum latency]]}}.
+        The maximum playout latency, in milliseconds, for audio played since the
+        last call to {{resetLatency()}}, or since the creation of the {{AudioContext}} if
+        {{resetLatency()}} has not been called.
+
+        Returns the value of the {{[[maximum latency]]}} internal slot.
 
 <h4 id="AudioPlayoutStats-methods">
 Methods</h4>
