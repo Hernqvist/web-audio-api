@@ -663,6 +663,8 @@ The interfaces defined are:
     {{AudioNode}} which applies a non-linear waveshaping
     effect for distortion and other more subtle warming effects.
 
+* An {{AudioPlayoutStats}} interface, which provides statistics about the audio played from the {{AudioContext}}.
+
 There are also several features that have been deprecated from the
 Web Audio API but not yet removed, pending implementation experience
 of their replacements:
@@ -1488,6 +1490,7 @@ interface AudioContext : BaseAudioContext {
     [SecureContext] readonly attribute (DOMString or AudioSinkInfo) sinkId;
     attribute EventHandler onsinkchange;
     attribute EventHandler onerror;
+    [SameObject] readonly attribute AudioPlayoutStats playoutStats;
     AudioTimestamp getOutputTimestamp ();
     Promise<undefined> resume ();
     Promise<undefined> suspend ();
@@ -1533,6 +1536,10 @@ and to allow it only when the {{AudioContext}}'s [=relevant global object=] has
     :: 
         An ordered list to store pending {{Promise}}s created by
         {{AudioContext/resume()}}. It is initially empty.
+
+    : <dfn>[[playout stats]]</dfn>
+    ::
+        A slot where an instance of {{AudioPlayoutStats}} can be stored. It is initially null.
 </dl>
 
 <h4 id="AudioContext-constructors">
@@ -1768,6 +1775,19 @@ Attributes</h4>
             * When the audio output device associated with an {{AudioContext}} is disconnected while
                 the context is {{AudioContextState/running}}.
             * When the operating system reports an audio device malfunction.
+
+    : <dfn>playoutStats</dfn>
+    ::
+        An instance of {{AudioPlayoutStats}} for this {{AudioContext}}.
+
+        <div algorithm="access playoutStats">
+            <span class="synchronous">When accessing this attribute, run the following steps:</span>
+
+            1. If the [[playout stats]] slot is null, initialize the slot with the result of the initialize playout stats algorithm, with this as input.
+
+            1. Return the value of the [[playout stats]] internal slot.
+        </div>
+
 
 </dl>
 
@@ -11535,6 +11555,87 @@ context.audioWorklet.addModule('vumeter-processor.js').then(() => {
     drawMeter();
 });
 </xmp>
+
+<h3 interface lt="AudioPlayoutStats" id="AudioPlayoutStats">
+The {{AudioPlayoutStats}} Interface</h3>
+
+Provides audio underrun and latency statistics for audio played through the AudioContext.
+
+Underruns are defined in terms of underrun frames and underrun events:
+- An <dfn>underrun frame</dfn> is an audio frame played by the output device that was not provided by the playout path.
+    This happens when the playout path fails to provide audio frames
+    to the output device on time, in which case underrun frames will be played (underrun frames are typically silence).
+    This typically only happens if the pipeline is underperforming.
+    This includes underrun situations that happen for reasons unrelated to WebAudio/{{AudioWorklet}}s.</li>
+- When an [=underrun frame=] is played after a non-underrun frame, we consider this an <dfn>underrun event</dfn>.
+    That is, multiple consecutive [=underrun frames=] will count as a single [=underrun event=].</li>
+
+<pre class="idl">
+[Exposed=Window, SecureContext]
+interface AudioPlayoutStats {
+    constructor (AudioContext context);
+    readonly attribute double underrunDuration;
+    readonly attribute unsigned long underrunEvents;
+    readonly attribute double totalDuration;
+    readonly attribute double averageLatency;
+    readonly attribute double minimumLatency;
+    readonly attribute double maximumLatency;
+    undefined resetLatency();
+    [Default] object toJSON();
+};
+</pre>
+
+{{AudioPlayoutStats}} has the following internal slots:
+
+<dl dfn-type=attribute dfn-for="AudioPlayoutStats">
+    : <dfn>[[audio context]]</dfn>
+    ::
+        The {{AudioContext}} that this instance of {{AudioPlayoutStats}} is associated with.
+
+    : <dfn>[[underrun duration]]</dfn>
+    ::
+        The total duration of [=underrun frames=] that {{[[audio context]]}} has played as of the last stat update, a double. Initialized to 0.
+
+    : <dfn>[[underrun events]]</dfn>
+    ::
+        The total number of [=underrun events=] that has occurred in playout by {{[[audio context]]}} as of the last stat update, an int. Initialized to 0.
+
+    : <dfn>[[total duration]]</dfn>
+    ::
+        The total duration of all frames (including [=underrun frames=]) that {{[[audio context]]}} has played as of the last stat update, a double. Initialized to 0.
+
+    : <dfn>[[average latency]]</dfn>
+    ::
+        The average playout latency of frames played by {{[[audio context]]}} over the currently tracked interval, a double. Initialized to 0.
+
+    : <dfn>[[minimum latency]]</dfn>
+    ::
+        The minimum playout latency of frames played by {{[[audio context]]}} over the currently tracked interval, a double. Initialized to 0.
+
+    : <dfn>[[maximum latency]]</dfn>
+    ::
+        The maximum playout latency of frames played by {{[[audio context]]}} over the currently tracked interval, a double. Initialized to 0.
+
+    : <dfn>[[latency reset time]]</dfn>
+    ::
+        The time when the latency statistics were last reset, a {{DOMHighResTimeStamp}}.
+</dl>
+
+<h4 id="AudioPlayoutStats-constructors">
+Constructors</h4>
+
+<dl dfn-type="constructor" dfn-for="AudioPlayoutStats" id="dom-audioplayoutstats-constructor-audioplayoutstats">
+    : <dfn>AudioPlayoutStats(context)</dfn>
+    ::
+
+        Set {{[[audio context]]}} to <code>context</code>.
+
+        Set {{[[latency reset time]]}} to the current time.
+
+        <pre class=argumentdef for="AudioPlayoutStats/constructor()">
+            context: The {{AudioContext}} this new {{AudioPlayoutStats}} will be associated with.
+        </pre>
+</dl>
 
 <h2 id="processing-model">
 Processing model</h2>
