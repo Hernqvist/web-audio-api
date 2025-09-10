@@ -11561,7 +11561,7 @@ The {{AudioPlayoutStats}} Interface</h3>
 
 Provides audio underrun and latency statistics for audio played through the AudioContext.
 
-Underruns are defined in terms of underrun frames and underrun events:
+Underruns are defined in terms of [=underrun frames=] and [=underrun events=]:
 - An <dfn>underrun frame</dfn> is an audio frame played by the output device that was not provided by the playout path.
     This happens when the playout path fails to provide audio frames
     to the output device on time, in which case underrun frames will be played (underrun frames are typically silence).
@@ -11643,7 +11643,7 @@ Attributes</h4>
 <dl dfn-type=attribute dfn-for="AudioPlayoutStats">
     : <dfn>underrunDuration</dfn>
     ::
-        Measures the duration of [=underrun frames=] played by the {{AudioContext}}, in milliseconds.
+        Measures the duration of [=underrun frames=] played by the {{AudioContext}}, in seconds.
         This metric can be used together with {{totalDuration}} to
         calculate the percentage of played out media that was not provided by the {{AudioContext}}.
 
@@ -11659,14 +11659,14 @@ Attributes</h4>
 <dl dfn-type=attribute dfn-for="AudioPlayoutStats">
     : <dfn>totalDuration</dfn>
     ::
-        Measures the total duration of all audio played by the {{AudioContext}}, in milliseconds.
+        Measures the total duration of all audio played by the {{AudioContext}}, in seconds.
 
         Returns the value of the {{[[total duration]]}} internal slot.
 
 <dl dfn-type=attribute dfn-for="AudioPlayoutStats">
     : <dfn>averageLatency</dfn>
     ::
-        The average playout latency, in milliseconds, for audio played since the
+        The average playout latency, in seconds, for audio played since the
         last call to {{resetLatency()}}, or since the creation of the {{AudioContext}} if
         {{resetLatency()}} has not been called.
 
@@ -11675,7 +11675,7 @@ Attributes</h4>
 <dl dfn-type=attribute dfn-for="AudioPlayoutStats">
     : <dfn>minimumLatency</dfn>
     ::
-        The minimum playout latency, in milliseconds, for audio played since the
+        The minimum playout latency, in seconds, for audio played since the
         last call to {{resetLatency()}}, or since the creation of the {{AudioContext}} if
         {{resetLatency()}} has not been called.
 
@@ -11684,7 +11684,7 @@ Attributes</h4>
 <dl dfn-type=attribute dfn-for="AudioPlayoutStats">
     : <dfn>maximumLatency</dfn>
     ::
-        The maximum playout latency, in milliseconds, for audio played since the
+        The maximum playout latency, in seconds, for audio played since the
         last call to {{resetLatency()}}, or since the creation of the {{AudioContext}} if
         {{resetLatency()}} has not been called.
 
@@ -11696,10 +11696,43 @@ Methods</h4>
 <dl dfn-type=method dfn-for="AudioPlayoutStats">
     : <dfn>resetLatency()</dfn>
     ::
-        Resets the start of the interval that latency stats are tracked over to the current time.
-        When {{resetLatency}} is called, run the reset latency steps.
+        Sets the start of the interval that latency stats are tracked over to the current time.
+        When {{resetLatency}} is called, run the following steps:
 
-<h4>Playout stats Privacy & Security considerations</h4>
+        1. Set {{[[latency reset time]]}} to the current time.
+        1. Let <var>currentLatency</var> be the playout latency of the last frame played by
+            {{[[audio context]]}}, or 0 if no frames have been played out yet.
+        1. Set {{[[average latency]]}} to <var>currentLatency</var>.
+        1. Set {{[[minimum latency]]}} to <var>currentLatency</var>.
+        1. Set {{[[maximum latency]]}} to <var>currentLatency</var>.
+
+<h4> Updating the stats</h4>
+Once per second, execute the following steps:
+1. If {{[[audio context]]}} is not running, abort these steps.
+1. Let <var>canUpdate</var> be false.
+1. Let <var>document</var> be the current object's
+    <a href="https://html.spec.whatwg.org/multipage/nav-history-apis.html#concept-document-window">associated document</a>.
+    If <var>document</var> is
+    <a href="https://html.spec.whatwg.org/multipage/document-sequences.html#fully-active">fully active</a>
+    and <a href="https://html.spec.whatwg.org/multipage/interaction.html#page-visibility">visible</a>
+    , set <var>canUpdate</var> to true.
+1. Let <var>permission</var> be the [=permission state=] for the permission associated with [="microphone"=] access.
+    If <var>permission</var> is "granted", set <var>canUpdate</var> to true.
+1. If <var>canUpdate</var> is false, abort these steps.
+1. Set {{[[underrun duration]]}} to the total duration of all [=underrun frames=] (in seconds) that
+    {{[[audio context]]}} has played since its construction.
+1. Set {{[[underrun events]]}} to the number of times that {{[[audio context]]}}
+    has played an [=underrun frame=] after a non-underrun frame since its construction.
+1. Set {{[[total duration]]}} to the total duration of all frames (in seconds) that
+    {{[[audio context]]}} has played since its construction.
+1. Set {{[[average latency]]}} to the average playout latency (in seconds) of frames that
+    {{[[audio context]]}} has played since {{[[latency reset time]]}}.
+1. Set {{[[minimum latency]]}} to the minimum playout latency (in seconds) of frames that
+    {{[[audio context]]}} has played since {{[[latency reset time]]}}.
+1. Set {{[[maximum latency]]}} to the maximum playout latency (in seconds) of frames that
+    {{[[audio context]]}} has played since {{[[latency reset time]]}}.
+
+<h4>Privacy considerations of glitch stats</h4>
 This outlines the outcome of a
 <a href="https://github.com/WICG/audio-context-playout-stats/issues/4">discussion with the Privacy WG</a>.
 
@@ -11715,7 +11748,7 @@ To inihibit the usage of such a covert channel, the API implements these mitigat
 - The api should be restricted to sites fulfill at least one of the following criteria:
     1. The site has obtained <a href="https://w3c.github.io/mediacapture-main/#dom-mediadevices-getusermedia">getUserMedia</a> permission.
         
-        Note: The reasoning is that if a site has obtained <a href="https://w3c.github.io/mediacapture-main/#dom-mediadevices-getusermedia">getUserMedia</a> permission, it can receive glitch information or communicate efficiently through use of the microphone, making API-access unnecessary. These options include detecting glitches through gaps in the microphone signal, or communicating using inaudible sine waves.
+        Note: The reasoning is that if a site has obtained <a href="https://w3c.github.io/mediacapture-main/#dom-mediadevices-getusermedia">getUserMedia</a> permission, it can receive glitch information or communicate efficiently through use of the microphone, making access to the information provided by {{AudioPlayoutStats}} redundant. These options include detecting glitches through gaps in the microphone signal, or communicating using inaudible sine waves. If microphone access is ever made safer, reconsider this condition.
     1. The site is active/visible.
 
         Note: Assuming that neither cooperating site has microphone permission, this criteria ensures that the site that receives the covert signal must be visible, restricting the conditions under which the covert channel can be used. It makes it impossible for sites to communicate with each other using the covert channel while not visible.
